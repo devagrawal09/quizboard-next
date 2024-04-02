@@ -45,7 +45,35 @@ export type Action =
       };
     };
 
-export function reducer(state: State, action: Action): State {
+export function participantReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "PRESS_BUZZER":
+      return {
+        ...state,
+        activeParticipant: action.payload.participantName,
+      };
+    case "JOIN":
+      const participantExists = state.participants.some(
+        (participant) => participant.name === action.payload.participantName
+      );
+
+      if (!participantExists) {
+        const newParticipant: Participant = {
+          name: action.payload.participantName,
+          points: 0,
+        };
+        return {
+          ...state,
+          participants: [...state.participants, newParticipant],
+        };
+      } else {
+        return state;
+      }
+    default:
+      return state;
+  }
+}
+export function hostReducer(state: State, action: Action): State {
   switch (action.type) {
     case "DEC_POINTS":
       return {
@@ -65,33 +93,11 @@ export function reducer(state: State, action: Action): State {
             : participant
         ),
       };
-    case "PRESS_BUZZER":
-      return {
-        ...state,
-        activeParticipant: action.payload.participantName,
-      };
     case "RESET_BUZZER":
       return {
         ...state,
         activeParticipant: "",
       };
-    case "JOIN":
-      const participantExists = state.participants.some(
-        (participant) => participant.name === action.payload.participantName
-      );
-
-      if (!participantExists) {
-        const newParticipant: Participant = {
-          name: action.payload.participantName,
-          points: 0,
-        };
-        return {
-          ...state,
-          participants: [...state.participants, newParticipant],
-        };
-      } else {
-        return state;
-      }
     case "LEAVE":
       return {
         ...state,
@@ -153,14 +159,17 @@ export default class Server implements Party.Server {
     console.log(`connection ${sender.id} sent message: ${message}`);
     const participantName = sender.state?.participantName;
 
-    console.log(`onMessage`, participantName);
+    const url = new URL(sender.uri);
+    const pathSegments = url.pathname.split("/");
+    const room = pathSegments[pathSegments.length - 1];
+    const isHost = participantName === room;
 
     try {
       const action: Action = JSON.parse(message);
-      if (this.state) {
-        this.state = reducer(this.state, action);
-        this.room.broadcast(JSON.stringify(this.state));
-      }
+      const reducer = isHost ? hostReducer : participantReducer;
+      this.state = reducer(this.state, action);
+      console.log(room, this.state);
+      this.room.broadcast(JSON.stringify(this.state));
     } catch (error) {
       console.error(`Failed to parse message as action: ${error}`);
       sender.send(`Error processing your message: ${error}`);

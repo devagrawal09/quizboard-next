@@ -23,26 +23,30 @@ export default function Board({
       </button>
 
       <div>
-        <button
-          onClick={() =>
-            dispatch({
-              type: `PRESS_BUZZER`,
-              payload: { participantName: name },
-            })
-          }
-          className="self-center mt-10 mb-10 bg-yellow-500 hover:bg-yellow-600 focus:bg-yellow-700 text-white text-3xl px-10 py-10 rounded-full transition-colors focus:outline-none disabled:bg-gray-500
-        "
-          disabled={!!state.activeParticipant}
-        >
-          Buzzer
-        </button>
-        <button
-          onClick={() => dispatch({ type: `RESET_BUZZER` })}
-          className="self-center mt-10 mb-10 bg-blue-500 hover:bg-blue-600 focus:bg-blue-700 text-white text-3xl px-10 py-10 rounded-full transition-colors focus:outline-none disabled:bg-gray-500"
-          disabled={!state.activeParticipant}
-        >
-          Reset Buzzer
-        </button>
+        {room !== name && (
+          <button
+            onClick={() =>
+              dispatch({
+                type: `PRESS_BUZZER`,
+                payload: { participantName: name },
+              })
+            }
+            className="self-center mt-10 mb-10 bg-yellow-500 hover:bg-yellow-600 focus:bg-yellow-700 text-white text-3xl px-10 py-10 rounded-full transition-colors focus:outline-none disabled:bg-gray-500"
+            disabled={!!state.activeParticipant}
+          >
+            Buzzer
+          </button>
+        )}
+
+        {room === name && (
+          <button
+            onClick={() => dispatch({ type: `RESET_BUZZER` })}
+            className="self-center mt-10 mb-10 bg-blue-500 hover:bg-blue-600 focus:bg-blue-700 text-white text-3xl px-10 py-10 rounded-full transition-colors focus:outline-none disabled:bg-gray-500"
+            disabled={!state.activeParticipant}
+          >
+            Reset Buzzer
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl w-full">
         {state.participants.map((participant, index) => (
@@ -57,7 +61,6 @@ export default function Board({
             <h3 className="mt-4 text-xl font-semibold text-black">
               {participant.name}
             </h3>
-
             <div
               className="flex text-2xl"
               title={participant.points + " points"}
@@ -77,32 +80,34 @@ export default function Board({
               </TransitionGroup>
             </div>
 
-            <div className="flex text-2xl">
-              <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  dispatch({
-                    type: `INC_POINTS`,
-                    payload: { index },
-                  });
-                }}
-                className="bg-green-500 text-white px-4 py-1 rounded-l hover:bg-green-700 focus:outline-none"
-              >
-                +
-              </button>
-              <button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  dispatch({
-                    type: `DEC_POINTS`,
-                    payload: { index },
-                  });
-                }}
-                className="bg-red-500 text-white px-4 py-1 rounded-r hover:bg-red-700 focus:outline-none"
-              >
-                -
-              </button>
-            </div>
+            {room === name && (
+              <div className="flex text-2xl">
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    dispatch({
+                      type: `INC_POINTS`,
+                      payload: { index },
+                    });
+                  }}
+                  className="bg-green-500 text-white px-4 py-1 rounded-l hover:bg-green-700 focus:outline-none"
+                >
+                  +
+                </button>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    dispatch({
+                      type: `DEC_POINTS`,
+                      payload: { index },
+                    });
+                  }}
+                  className="bg-red-500 text-white px-4 py-1 rounded-r hover:bg-red-700 focus:outline-none"
+                >
+                  -
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
